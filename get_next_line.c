@@ -6,22 +6,31 @@
 /*   By: porg <porg@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/10 16:40:30 by porg              #+#    #+#             */
-/*   Updated: 2021/12/12 22:17:44 by porg             ###   ########.fr       */
+/*   Updated: 2021/12/13 11:54:59 by jlaurent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	getline(char **line, char **str)
+void	freeline(char *line)
+{
+	if (line)
+	{
+		free(line);
+		line = NULL;
+	}
+}
+
+char	*get_line(char **line, char **str)
 {
 	char	*temp;
 	int		i;
 
 	i = 0;
-	temp = str;
-	while(str[i] != '\n' && str[i] != '\0')
+	temp = *str;
+	while(temp[i] != '\n' && temp[i] != '\0')
 		i++;
-	if (strchr(*str, '\n'))
+	if (ft_strchr(*str, '\n'))
 	{
 		*line = ft_substr(*str, 0 , i + 1);
 		*str = ft_strdup(*str + i + 1);
@@ -35,7 +44,7 @@ char	getline(char **line, char **str)
 	return (*line);
 }
 
-int	bufcpy(int fd, char **buf, char **str, char line)
+int	bufcpy(int fd, char **buf, char **str, char **line)
 {
 	int		i;
 	char	*temp;
@@ -44,21 +53,14 @@ int	bufcpy(int fd, char **buf, char **str, char line)
 	while (!ft_strchr(*str, '\n') && i)
 	{
 		i = read(fd, *buf, BUFFER_SIZE);
-		buf[i] = '\0';
+		(*buf)[i] = '\0';
+		temp = *str;
 		*str = ft_strjoin(*str, *buf);
+		freeline(temp);
 	}
 	freeline(*buf);
-	getline(line, str);
+	get_line(line, str);
 	return (i);
-}
-
-void	freeline(char *line)
-{
-	if (line)
-	{
-		free(line);
-		line = NULL;
-	}
 }
 
 char	*get_next_line(int fd)
@@ -67,6 +69,7 @@ char	*get_next_line(int fd)
 	static char	*str = NULL;
 	char		*line;
 
+	line = NULL;
 	if (fd < 0  || BUFFER_SIZE <= 0)
 		return (NULL);
 	buf = (char *) malloc((BUFFER_SIZE + 1) * sizeof(char));
